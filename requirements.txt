@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+pydantic>=2.0
+langgraph
+langchain-core
+anthropic
+chromadb
+sqlalchemy
+psycopg2-binary
+python-multipart
