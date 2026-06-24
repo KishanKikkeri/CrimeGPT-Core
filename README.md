@@ -72,19 +72,6 @@ Every change to the case is recorded as a `CaseMutation` with before/after snaps
 
 ---
 
-## The Demo (90 seconds)
-
-| Time | What the judge sees |
-|------|---------------------|
-| 0–15s | Problem statement |
-| 15–30s | 4 documents uploaded |
-| 30–45s | AI extracts: 1 victim, 2 witnesses, 4 evidence, 7 events |
-| 45–60s | Contradiction found: witness 02:03 vs CCTV 02:16 (13 min gap) |
-| 60–75s | AI explains: "cross-examination will exploit this discrepancy" |
-| 75–90s | Case Readiness: 66% · 13 gaps · downloadable report |
-
----
-
 ## Tech Stack
 
 | Layer | Technology |
@@ -226,14 +213,4 @@ tests/intelligence/test_burglary_case.py
 | [ROADMAP.md](docs/ROADMAP.md) | Future features |
 | [SECURITY.md](docs/SECURITY.md) | Data handling, PII, AI limitations |
 
----
 
-## Team
-
-Built at [Hackathon Name] by the CrimeGPT team from IIIT Vadodara (DIU).
-
----
-
-## License
-
-MIT — see [LICENSE](LICENSE)
