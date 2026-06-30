@@ -1,0 +1,45 @@
+{
+  "_comment": "Ground truth for intelligence tests. Each entry is a gap that CrimeGPT MUST detect.",
+  "required_gaps": [
+    {
+      "id_prefix": "G-TC",
+      "category": "timeline_contradiction",
+      "severity": "high",
+      "description_contains": ["2:03", "2:16"],
+      "rationale": "Witness Patel says 02:03 AM; CCTV shows 02:16 AM — 13-minute gap for same suspect"
+    },
+    {
+      "id_prefix": "G-COC-EV-001",
+      "category": "chain_of_custody",
+      "severity": "high",
+      "description_contains": ["EV-001", "fingerprint"],
+      "rationale": "Fingerprint samples have no chain-of-custody log"
+    },
+    {
+      "id_prefix": "G-COC-EV-003",
+      "category": "chain_of_custody",
+      "severity": "high",
+      "description_contains": ["EV-003", "bag"],
+      "rationale": "Recovered bag has no chain-of-custody record"
+    },
+    {
+      "id_prefix": "G-MW",
+      "category": "missing_witness",
+      "severity": "medium",
+      "description_contains": ["contact"],
+      "rationale": "Anonymous witness (W2) has no contact information — cannot be recalled"
+    },
+    {
+      "id_prefix": "G-ME-FORENSIC",
+      "category": "missing_evidence",
+      "severity": "medium",
+      "description_contains": ["forensic"],
+      "rationale": "Physical evidence collected but no forensic analysis report produced"
+    }
+  ],
+  "minimum_gaps_total": 5,
+  "minimum_high_severity": 2,
+  "target_health_score_range": [55, 80],
+  "required_legal_statutes_min": 1,
+  "required_timeline_events_min": 4
+}

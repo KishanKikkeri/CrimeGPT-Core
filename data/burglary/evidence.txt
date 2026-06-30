@@ -1,0 +1,56 @@
+EVIDENCE INTAKE LOG
+Case Reference: [Pending assignment]
+Location: 14 Maple Street, Greenfields
+Date: June 14, 2026
+
+EV-001: FINGERPRINT SAMPLES
+Type: Physical / Forensic trace
+Description: Visible smudge prints observed on exterior surface of
+  forced kitchen window frame. Photographed in situ. Swabs collected
+  by Officer Mehta using standard kit.
+Collected by: Constable Arjun Mehta
+Collected at: Approximately 02:45 AM
+Chain of Custody: [NOT RECORDED — custody log form not available at scene]
+Notes: Fingerprint analysis NOT conducted. Forensic team was not
+  dispatched. Samples require laboratory processing.
+Admissibility: Pending
+
+EV-002: CCTV DRIVE (16 Maple St Camera 3 — Rear Alley)
+Type: Digital / CCTV
+Description: External hard drive containing footage from CCTV camera
+  mounted at 16 Maple Street, facing rear alley. Camera designation:
+  Camera 3.
+Collected by: Constable Arjun Mehta (Singh listed in error — was Mehta)
+Collected at: 03:15 AM, June 14 2026
+Chain of Custody:
+  03:15 AM — Collected from owner D. Krishnamurthy by C. Mehta — 16 Maple St
+  04:10 AM — Transferred to station evidence locker by C. Mehta — Alpha-7 patrol car
+  [Further transfers not yet recorded]
+Admissibility: Pending review
+Notes: CCTV footage reviewed by Constable Nair at station. Footage
+  shows an individual near the rear window of 14 Maple St at 02:16 AM.
+  Individual is wearing dark clothing. Face not visible. Timestamp
+  on footage appears accurate (checked against station clock).
+
+EV-003: RECOVERED BAG
+Type: Physical
+Description: Dark brown leather shoulder bag found near dumpster in
+  rear alley, approximately 40 metres from 14 Maple Street. Believed
+  to be the stolen laptop bag reported by neighbor Mrs. Patel.
+  Laptop contents NOT found.
+Collected by: Constable Priya Nair
+Collected at: [TIME NOT RECORDED]
+Chain of Custody: [NOT RECORDED]
+Admissibility: Questionable
+Notes: Bag was photographed at scene. No fingerprints taken from
+  bag surface. No timestamp on scene photographs.
+
+EV-004: SCENE PHOTOGRAPHS
+Type: Photo / Documentation
+Description: 14 photographs of the scene: entry point (forced window),
+  glass fragments on floor, exterior sill, alley view, recovered bag.
+Collected by: Constable Mehta
+Collected at: [TIME NOT RECORDED — camera clock not verified]
+Chain of Custody: [NOT RECORDED]
+Notes: Photos stored on Officer Mehta's personal phone. Need to be
+  transferred to case file system.

@@ -1,0 +1,23 @@
+{
+  "_comment": "Key timeline events CrimeGPT should detect from the burglary case documents.",
+  "required_events": [
+    {
+      "description_contains": ["02:03", "witness", "window"],
+      "rationale": "Mrs. Patel observes suspect entering at 02:03 AM"
+    },
+    {
+      "description_contains": ["02:16", "cctv", "window"],
+      "rationale": "CCTV Camera 3 captures individual at rear window at 02:16 AM"
+    },
+    {
+      "description_contains": ["02:08", "call", "emergency"],
+      "rationale": "Mrs. Patel calls emergency services at 02:08 AM"
+    },
+    {
+      "description_contains": ["02:31", "arriv", "officer"],
+      "rationale": "Police arrive at scene at 02:31 AM"
+    }
+  ],
+  "minimum_events": 4,
+  "chronological_order_required": true
+}
