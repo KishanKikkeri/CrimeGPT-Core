@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CrimeGPT — AI Investigation Copilot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css">
+<style>
+:root{
+  --bg:#0B1020;--panel:#121A2E;--card:#16213A;--card2:#1C2940;
+  --accent:#7C5CFF;--accent2:#A78BFA;--accent-glow:rgba(124,92,255,.18);
+  --success:#22C55E;--warning:#F59E0B;--danger:#EF4444;
+  --text:#F8FAFC;--muted:#94A3B8;--border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.11);
+  --sh:0 4px 24px rgba(0,0,0,.4);--sh-sm:0 2px 8px rgba(0,0,0,.3);
+  --r:14px;--r-sm:10px;--r-xs:7px;
+  font-family:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body,#root{height:100%}
+body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;overflow:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
+.layout{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:240px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.topbar{height:56px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:20px}
+.sb-logo{padding:20px 18px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.sb-logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 14px var(--accent-glow)}
+.sb-case{padding:14px 12px;border-bottom:1px solid var(--border)}
+.sb-case-inner{background:var(--card);border-radius:var(--r-sm);padding:10px 12px;border:1px solid var(--border2);cursor:pointer}
+.sb-nav{flex:1;padding:8px 0;overflow-y:auto}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;border-left:2px solid transparent;transition:background .15s,border-color .15s}
+.sb-item:hover{background:rgba(255,255,255,.04)}
+.sb-item.on{background:rgba(124,92,255,.1);border-left-color:var(--accent)}
+.sb-item.on .sb-lbl{color:var(--text)}.sb-item.on .sb-ic{color:var(--accent)}
+.sb-lbl{font-size:13px;color:var(--muted);transition:color .15s}
+.sb-ic{font-size:17px;color:rgba(148,163,184,.5);transition:color .15s;flex-shrink:0}
+.sb-item:hover .sb-lbl{color:var(--text)}.sb-item:hover .sb-ic{color:var(--muted)}
+.sb-section{font-size:10px;color:rgba(148,163,184,.35);letter-spacing:.08em;text-transform:uppercase;padding:10px 18px 4px}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-avatar{width:30px;height:30px;background:linear-gradient(135deg,#4F46E5,var(--accent));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.tb-title{flex:1;display:flex;align-items:center;gap:10px}
+.tb-actions{display:flex;align-items:center;gap:8px}
+.tb-search{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:13px;color:var(--muted);cursor:pointer;min-width:200px}
+.tb-icon-btn{width:34px;height:34px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--muted);transition:background .15s,color .15s;position:relative}
+.tb-icon-btn:hover{background:rgba(255,255,255,.09);color:var(--text)}
+.notif-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;background:var(--danger);border-radius:50%;border:1.5px solid var(--panel)}
+.btn-accent{background:linear-gradient(135deg,var(--accent),#5B3FD6);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 2px 12px var(--accent-glow);transition:opacity .15s,transform .1s}
+.btn-accent:hover{opacity:.9;transform:translateY(-1px)}
+.btn-ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;font-family:inherit}
+.btn-ghost:hover{background:rgba(255,255,255,.09)}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:500}
+.b-red{background:rgba(239,68,68,.15);color:#FCA5A5;border:1px solid rgba(239,68,68,.2)}
+.b-amb{background:rgba(245,158,11,.12);color:#FCD34D;border:1px solid rgba(245,158,11,.2)}
+.b-grn{background:rgba(34,197,94,.12);color:#86EFAC;border:1px solid rgba(34,197,94,.2)}
+.b-pur{background:rgba(124,92,255,.15);color:#C4B5FD;border:1px solid rgba(124,92,255,.25)}
+.b-blu{background:rgba(59,130,246,.12);color:#93C5FD;border:1px solid rgba(59,130,246,.2)}
+.b-gray{background:rgba(255,255,255,.07);color:var(--muted);border:1px solid var(--border)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;transition:box-shadow .2s,border-color .2s}
+.card:hover{box-shadow:var(--sh);border-color:rgba(255,255,255,.1)}
+.alert-banner{background:rgba(239,68,68,.08);border-bottom:1px solid rgba(239,68,68,.15);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.alert-pulse{width:8px;height:8px;border-radius:50%;background:var(--danger);flex-shrink:0;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(239,68,68,.5)}50%{opacity:.8;box-shadow:0 0 0 5px rgba(239,68,68,0)}}
+.sbar{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-top:5px}
+.sbar-fill{height:100%;border-radius:2px;transition:width 1.1s cubic-bezier(.25,.1,.25,1)}
+.sf-g{background:linear-gradient(90deg,#16A34A,var(--success))}.sf-a{background:linear-gradient(90deg,#D97706,var(--warning))}.sf-r{background:linear-gradient(90deg,#B91C1C,var(--danger))}
+.tl-dot{width:10px;height:10px;border-radius:50%;border:2px solid rgba(255,255,255,.18);background:var(--bg);flex-shrink:0;margin-top:4px;transition:all .2s}
+.tl-dot-r{border-color:var(--danger);background:rgba(239,68,68,.25)}
+.tl-dot-a{border-color:var(--accent);background:var(--accent);box-shadow:0 0 8px var(--accent-glow)}
+.tl-ln{width:1px;background:rgba(255,255,255,.07);flex:1;min-height:20px;margin:0 4.5px}
+.tl-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;cursor:pointer;transition:border-color .15s,background .15s}
+.tl-card:hover{border-color:rgba(255,255,255,.12)}
+.tl-card.sel{border-color:rgba(124,92,255,.4);box-shadow:0 0 0 1px rgba(124,92,255,.15)}
+.gap-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;transition:box-shadow .2s,border-color .2s;cursor:pointer;overflow:hidden}
+.gap-card:hover{box-shadow:var(--sh)}
+.gap-card.open{border-color:rgba(124,92,255,.25);box-shadow:0 0 0 1px rgba(124,92,255,.1),var(--sh)}
+.gap-H{border-left:3px solid var(--danger)}.gap-M{border-left:3px solid var(--warning)}.gap-L{border-left:3px solid rgba(255,255,255,.15)}
+.gap-body{padding:14px 16px}
+.gap-expand{padding:0 16px;max-height:0;overflow:hidden;transition:max-height .38s cubic-bezier(.25,.1,.25,1),padding .38s}
+.gap-expand.open{max-height:600px;padding-bottom:16px}
+.ai-block{background:rgba(124,92,255,.08);border:1px solid rgba(124,92,255,.15);border-radius:var(--r-sm);padding:12px 14px;margin-top:10px}
+.metric-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;display:flex;flex-direction:column;gap:4px;transition:transform .2s,box-shadow .2s,border-color .2s;cursor:default}
+.metric-card:hover{transform:translateY(-2px);box-shadow:var(--sh);border-color:rgba(255,255,255,.1)}
+.sim-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;cursor:pointer;transition:all .2s;font-family:inherit}
+.sim-card:hover{border-color:rgba(255,255,255,.12);background:var(--card2)}
+.sim-card.on{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.06)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.anim{animation:fadeUp .4s cubic-bezier(.25,.1,.25,1) both}
+.a1{animation-delay:.06s}.a2{animation-delay:.12s}.a3{animation-delay:.18s}.a4{animation-delay:.24s}.a5{animation-delay:.30s}
+.mono{font-family:'JetBrains Mono',monospace}
+.label{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.div{height:1px;background:var(--border);margin:14px 0}
+.pb-check{width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:all .3s}
+.pb-check.done{border-color:var(--success);background:rgba(34,197,94,.12)}
+.pb-check.active{border-color:var(--accent)}
+.tab-b{padding:6px 14px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-size:13px;color:var(--muted);font-family:inherit;transition:color .15s,border-color .15s}
+.tab-b:hover{color:var(--text)}.tab-b.on{color:var(--text);border-color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script>
+const {useState,useEffect,useRef,useMemo}=React;
+const h=React.createElement;
+
+const GAPS=[
+  {id:'G-TC',s:'HIGH',cat:'timeline contradiction',
+   sum:'Events E1 and E3 both link to suspect S1 but timestamps differ by 13 minutes (02:03 vs 02:16 AM).',
+   why:'Witness W1 (Mrs. Patel) places the suspect at the window at 02:03 AM. CCTV Camera 3 records entry at 02:16 AM.',
+   impact:'Direct cross-examination risk. Defence counsel will exploit this to challenge the entire prosecution timeline.',
+   rec:'Obtain Camera 3 device log to verify clock sync. Re-interview Mrs. Patel to establish whether 02:03 was time of observation or estimated entry.',
+   conf:94,prov:['E1','E3'],method:'rule:timestamp_diff'},
+  {id:'G-COC-001',s:'HIGH',cat:'chain of custody',
+   sum:'EV-001 (fingerprint smudges, kitchen window frame) has zero chain-of-custody documentation.',
+   why:'Collected by Constable Mehta at 02:45 AM. No custody form was completed at the scene.',
+   impact:'Inadmissible under BNSS Section 65. Defence will argue contamination between collection and lab submission.',
+   rec:'Constable Mehta must document EV-001 custody: collection time, packaging, transfer to patrol vehicle, delivery to evidence locker — before any lab submission.',
+   conf:98,prov:['EV-001'],method:'rule:custody_chain'},
+  {id:'G-COC-003',s:'HIGH',cat:'chain of custody',
+   sum:'EV-003 (recovered leather bag, rear alley) has no custody record and no recorded collection time.',
+   why:'Found ~40m from the property. Officer Nair collected it but no formal documentation was completed.',
+   impact:'The bag is the only item potentially linking the suspect to the stolen laptop. Without custody records, connection to scene is unverified.',
+   rec:'Constable Nair should file a supplementary statement confirming exact time, location, and handling of EV-003.',
+   conf:98,prov:['EV-003'],method:'rule:custody_chain'},
+  {id:'G-ME',s:'MEDIUM',cat:'missing evidence',
+   sum:'Physical forensic evidence (EV-001) present but no laboratory analysis report attached.',
+   why:'Fingerprint samples were collected but the forensic team was not dispatched to the scene.',
+   impact:'Fingerprints cannot identify the suspect without analysis. Zero probative value until processed.',
+   rec:'Submit EV-001 fingerprint swabs to the forensic laboratory immediately and request expedited processing.',
+   conf:80,prov:['EV-001'],method:'rule:missing_forensic_analysis'},
+  {id:'G-MW',s:'MEDIUM',cat:'missing witness',
+   sum:'Witness W2 is anonymous — no name or contact recorded. Cannot be recalled or cross-examined.',
+   why:'Anonymous passerby approached officers at scene. Declined to provide any identifying information.',
+   impact:'Escape-route lead (dark sedan, Cypress Lane) cannot be developed further without contacting this witness.',
+   rec:'Review CCTV of the 02:45 AM interaction with officers. Check Cypress Lane cameras for northbound dark sedans 02:20–02:35 AM.',
+   conf:90,prov:['W2'],method:'rule:missing_witness_contact'},
+];
+
+const TL=[
+  {id:'E1',t:'02:03 AM',d:'Witness W1 (Mrs. Patel) observes masked individual entering rear kitchen window',src:'witness_statement_W1',conf:80,warn:true,ppl:['W1','S1']},
+  {id:'E2',t:'02:08 AM',d:'Witness W1 calls emergency services',src:'witness_statement_W1',conf:90,ppl:['W1']},
+  {id:'E3',t:'02:16 AM',d:'CCTV Camera 3 captures masked individual at rear window of 14 Maple Street',src:'evidence_EV-002',conf:95,warn:true,ev:['EV-002'],ppl:['S1'],contra:'13-minute contradiction with E1 (witness) — same suspect, different timestamps'},
+  {id:'E4',t:'02:25 AM',d:'Anonymous witness (W2) observes dark sedan near alley; person carrying large item',src:'witness_statement_W2',conf:55,ppl:['W2','S1']},
+  {id:'E5',t:'02:31 AM',d:'Officers Mehta and Nair arrive at 14 Maple Street',src:'dispatch_log',conf:98},
+  {id:'E6',t:'02:45 AM',d:'Fingerprint samples collected from forced kitchen window frame (EV-001)',src:'incident_report',conf:90,ev:['EV-001']},
+  {id:'E7',t:'03:15 AM',d:'CCTV drive collected from owner D. Krishnamurthy at 16 Maple Street (EV-002)',src:'incident_report',conf:95,ev:['EV-002']},
+];
+
+const STAGES=[
+  'Extracting case entities from raw documents',
+  'Constructing chronological timeline',
+  'Linking evidence to events and people',
+  'Running gap detection — 7 rule categories',
+  'AI: Analysing critical findings (Claude Sonnet)',
+  'Querying BNS / BNSS legal corpus (RAG)',
+  'Auditing admissibility and compliance',
+  'Calculating weighted case readiness score',
+];
+
+function useCounter(target,delay=0){
+  const [v,setV]=useState(0);
+  useEffect(()=>{
+    const t=setTimeout(()=>{
+      let c=0;const step=target/55;
+      const r=setInterval(()=>{c+=step;if(c>=target){setV(target);clearInterval(r);}else setV(Math.round(c));},16);
+      return()=>clearInterval(r);
+    },delay);
+    return()=>clearTimeout(t);
+  },[target,delay]);
+  return v;
+}
+
+function Gauge({score,size=180}){
+  const [s,setS]=useState(0);
+  useEffect(()=>{setTimeout(()=>setS(score),150);},[score]);
+  const r=size*.37,cx=size/2,cy=size/2,c=2*Math.PI*r;
+  const off=c*(1-s/100);
+  const gid=`g${size}`;
+  const col=s>=75?`url(#g-grn-${gid})`:s>=55?`url(#g-amb-${gid})`:`url(#g-red-${gid})`;
+  const mk=(id,a,b)=>h('linearGradient',{id,x1:'0%',y1:'0%',x2:'100%',y2:'0%'},h('stop',{offset:'0%',stopColor:a}),h('stop',{offset:'100%',stopColor:b}));
+  return h('svg',{width:size,height:size,viewBox:`0 0 ${size} ${size}`},
+    h('defs',null,mk(`g-grn-${gid}`,'#16A34A','#22C55E'),mk(`g-amb-${gid}`,'#D97706','#F59E0B'),mk(`g-red-${gid}`,'#B91C1C','#EF4444')),
+    h('circle',{cx,cy,r,fill:'none',stroke:'rgba(255,255,255,.06)',strokeWidth:size*.055}),
+    h('circle',{cx,cy,r,fill:'none',stroke:col,strokeWidth:size*.055,strokeDasharray:c,strokeLinecap:'round',
+      style:{strokeDashoffset:off,transition:'stroke-dashoffset 1.2s cubic-bezier(.25,.1,.25,1)',transform:'rotate(-90deg)',transformOrigin:'center'}}),
+    h('text',{x:cx,y:cy-2,textAnchor:'middle',fontSize:size*.185,fontWeight:600,fill:'#F8FAFC',fontFamily:"'JetBrains Mono',monospace"},s+'%'),
+    h('text',{x:cx,y:cy+size*.12,textAnchor:'middle',fontSize:size*.075,fill:'#94A3B8'},'readiness')
+  );
+}
+
+function ScoreBar({label,value}){
+  const [w,setW]=useState(0);
+  useEffect(()=>{setTimeout(()=>setW(value),300);},[value]);
+  const cls=value>=75?'sf-g':value>=50?'sf-a':'sf-r';
+  return h('div',{style:{marginBottom:10}},
+    h('div',{style:{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:5}},
+      h('span',{style:{color:'var(--muted)'}},label),
+      h('span',{className:'mono',style:{fontWeight:500}},value+'%')
+    ),
+    h('div',{className:'sbar'},h('div',{className:`sbar-fill ${cls}`,style:{width:w+'%'}}))
+  );
+}
+
+function MetricCard({label,target,icon,color,delay}){
+  const v=useCounter(target,delay||0);
+  return h('div',{className:'metric-card anim',style:{animationDelay:`${(delay||0)/1000+.1}s`}},
+    h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:4}},
+      h('div',{className:'mono',style:{fontSize:26,fontWeight:600,color:color||'var(--text)',letterSpacing:'-.02em'}},v),
+      h('i',{className:`ti ${icon}`,style:{fontSize:20,color:color||'var(--muted)',opacity:.45},'aria-hidden':true})
+    ),
+    h('div',{style:{fontSize:12,color:'var(--muted)'}},label)
+  );
+}
+
+function Sidebar({page,setPage}){
+  const nav=[
+    {id:'dashboard',ic:'ti-layout-dashboard',l:'Dashboard'},
+    {id:'gaps',ic:'ti-alert-circle',l:'Investigation gaps'},
+    {id:'timeline',ic:'ti-timeline',l:'Timeline'},
+    {id:'evidence',ic:'ti-topology-ring',l:'Evidence board'},
+    {id:'copilot',ic:'ti-brain',l:'AI Copilot'},
+    {id:'legal',ic:'ti-scale',l:'Legal analysis'},
+    {id:'reports',ic:'ti-file-description',l:'Reports'},
+    {id:'settings',ic:'ti-settings',l:'Settings'},
+  ];
+  return h('aside',{className:'sidebar'},
+    h('div',{className:'sb-logo'},
+      h('div',{className:'sb-logo-icon'},h('i',{className:'ti ti-shield-search',style:{color:'#fff',fontSize:16},'aria-hidden':true})),
+      h('div',null,
+        h('div',{style:{fontSize:14,fontWeight:700,letterSpacing:'-.02em'}},'CrimeGPT'),
+        h('div',{style:{fontSize:10,color:'rgba(148,163,184,.6)',marginTop:1}},'AI Investigation Copilot')
+      )
+    ),
+    h('div',{className:'sb-case'},
+      h('div',{style:{fontSize:10,color:'rgba(148,163,184,.4)',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:6}},'Active investigation'),
+      h('div',{className:'sb-case-inner'},
+        h('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:4}},
+          h('div',{style:{width:6,height:6,borderRadius:'50%',background:'var(--warning)',flexShrink:0,boxShadow:'0 0 6px rgba(245,158,11,.7)'}}),
+          h('span',{style:{fontSize:12,fontWeight:500}},'14 Maple Street')
+        ),
+        h('div',{className:'mono',style:{fontSize:10,color:'rgba(148,163,184,.4)',marginBottom:8}},'CASE-2026-A4F91B'),
+        h('div',{style:{display:'flex',gap:6}},
+          h('span',{className:'badge b-amb',style:{fontSize:10}},'66% ready'),
+          h('span',{className:'badge b-red',style:{fontSize:10}},'5 HIGH')
+        )
+      )
+    ),
+    h('nav',{className:'sb-nav'},
+      h('div',{className:'sb-section'},'Navigation'),
+      nav.slice(0,5).map(n=>h('div',{key:n.id,className:'sb-item'+(page===n.id?' on':''),onClick:()=>setPage(n.id)},
+        h('i',{className:`ti ${n.ic} sb-ic`,'aria-hidden':true}),h('span',{className:'sb-lbl'},n.l)
+      )),
+      h('div',{className:'sb-section'},'Output'),
+      nav.slice(5,7).map(n=>h('div',{key:n.id,className:'sb-item'+(page===n.id?' on':''),onClick:()=>setPage(n.id)},
+        h('i',{className:`ti ${n.ic} sb-ic`,'aria-hidden':true}),h('span',{className:'sb-lbl'},n.l)
+      )),
+      h('div',{className:'sb-section'},'System'),
+      h('div',{className:'sb-item'+(page==='settings'?' on':''),onClick:()=>setPage('settings')},
+        h('i',{className:'ti ti-settings sb-ic','aria-hidden':true}),h('span',{className:'sb-lbl'},'Settings')
+      )
+    ),
+    h('div',{className:'sb-foot'},
+      h('div',{className:'sb-avatar'},'K'),
+      h('div',{style:{flex:1,overflow:'hidden'}},
+        h('div',{style:{fontSize:12,fontWeight:500}},'Officer Kishan'),
+        h('div',{style:{fontSize:11,color:'var(--muted)'}},'Claude Sonnet 4.6')
+      )
+    )
+  );
+}
+
+function TopBar({page,setPage}){
+  const T={dashboard:'Dashboard',gaps:'Investigation gaps',timeline:'Timeline',evidence:'Evidence board',copilot:'AI Copilot',legal:'Legal analysis',reports:'Reports',settings:'Settings',playback:'Investigation playback'};
+  return h('div',{className:'topbar'},
+    h('div',{className:'tb-title'},
+      h('span',{style:{fontSize:14,fontWeight:600}},(T[page]||page)),
+      h('span',{className:'badge b-gray',style:{fontSize:10}},'Case #2026-A4F91B')
+    ),
+    h('div',{className:'tb-search'},
+      h('i',{className:'ti ti-search',style:{fontSize:14},'aria-hidden':true}),
+      h('span',{style:{fontSize:13}},'Search case...'),
+      h('span',{style:{fontSize:11,color:'rgba(148,163,184,.35)',marginLeft:8}},'⌘K')
+    ),
+    h('div',{className:'tb-actions'},
+      h('div',{className:'tb-icon-btn',onClick:()=>setPage('playback'),title:'Investigation playback'},
+        h('i',{className:'ti ti-player-play',style:{fontSize:15},'aria-hidden':true})
+      ),
+      h('div',{className:'tb-icon-btn',title:'Notifications'},
+        h('i',{className:'ti ti-bell',style:{fontSize:15},'aria-hidden':true}),
+        h('div',{className:'notif-dot'})
+      ),
+      h('button',{className:'btn-accent',onClick:()=>setPage('reports')},
+        h('i',{className:'ti ti-file-download',style:{fontSize:14},'aria-hidden':true}),'Generate Report'
+      )
+    )
+  );
+}
+
+function AlertBanner({setPage}){
+  return h('div',{className:'alert-banner'},
+    h('div',{className:'alert-pulse'}),
+    h('i',{className:'ti ti-alert-triangle',style:{fontSize:15,color:'var(--danger)',flexShrink:0},'aria-hidden':true}),
+    h('span',{style:{flex:1,fontSize:13,fontWeight:500,color:'#FCA5A5'}},
+      'AI found 1 critical contradiction — Witness (02:03 AM) vs CCTV Camera 3 (02:16 AM) — 13-minute discrepancy'
+    ),
+    h('button',{className:'btn-ghost',onClick:()=>setPage('gaps'),
+      style:{padding:'5px 12px',fontSize:12,borderColor:'rgba(239,68,68,.3)',color:'#FCA5A5',flexShrink:0}},
+      'View Analysis ',h('i',{className:'ti ti-arrow-right',style:{fontSize:13},'aria-hidden':true})
+    )
+  );
+}
+
+function calcScore(fixes){
+  const e=fixes.c?85:25,l=fixes.c?75:(fixes.f?50:40),d=85+(fixes.f?5:0)+(fixes.w?5:0);
+  return Math.round(100*.35+e*.25+l*.20+Math.min(100,d)*.20);
+}
+
+function DashboardPage(){
+  const [fixes,setFixes]=useState({c:false,f:false,w:false});
+  const [score,setScore]=useState(66);
+  const toggle=k=>setFixes(p=>({...p,[k]:!p[k]}));
+  const sim=useMemo(()=>calcScore(fixes),[fixes]);
+  useEffect(()=>setScore(sim),[sim]);
+  const e=fixes.c?85:25,l=fixes.c?75:(fixes.f?50:40),d=85+(fixes.f?5:0)+(fixes.w?5:0);
+  const anyFix=Object.values(fixes).some(Boolean);
+  return h('div',{style:{display:'grid',gridTemplateColumns:'300px 1fr 260px',gap:16}},
+    h('div',{style:{display:'flex',flexDirection:'column',gap:14}},
+      h('div',{className:'card anim',style:{display:'flex',flexDirection:'column',alignItems:'center',padding:'1.5rem'}},
+        h(Gauge,{score,size:180}),
+        h('div',{style:{width:'100%',marginTop:16}},
+          h('div',{style:{fontSize:12,color:'var(--muted)',marginBottom:12}},'Score breakdown'),
+          h(ScoreBar,{label:'Completeness (35%)',value:100}),
+          h(ScoreBar,{label:'Evidence integrity (25%)',value:e}),
+          h(ScoreBar,{label:'Legal readiness (20%)',value:l}),
+          h(ScoreBar,{label:'Documentation quality (20%)',value:Math.min(100,d)})
+        )
+      ),
+      h('div',{className:'card anim a1'},
+        h('div',{style:{fontSize:13,fontWeight:600,marginBottom:2}},'What if…'),
+        h('div',{style:{fontSize:12,color:'var(--muted)',marginBottom:14}},'Toggle fixes to see impact'),
+        [
+          {k:'c',l:'Complete custody chains',s:'EV-001, EV-003, EV-004',imp:'+22%'},
+          {k:'f',l:'Attach forensic report',s:'EV-001 fingerprint analysis',imp:'+3%'},
+          {k:'w',l:'Identify witness W2',s:'Anonymous passerby',imp:'+1%'},
+        ].map(({k,l,s,imp})=>h('button',{key:k,className:'sim-card'+(fixes[k]?' on':''),onClick:()=>toggle(k),style:{display:'block',width:'100%',textAlign:'left',marginBottom:8}},
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:5}},
+            h('div',{style:{display:'flex',gap:8,alignItems:'center'}},
+              h('div',{style:{width:16,height:16,borderRadius:4,border:`2px solid ${fixes[k]?'rgba(34,197,94,.6)':'rgba(255,255,255,.18)'}`,display:'flex',alignItems:'center',justifyContent:'center',transition:'all .2s'}},
+                fixes[k]&&h('i',{className:'ti ti-check',style:{fontSize:11,color:'var(--success)'},'aria-hidden':true})
+              ),
+              h('span',{style:{fontSize:12,fontWeight:500}},l)
+            ),
+            h('span',{className:'mono',style:{fontSize:11,color:'var(--success)',fontWeight:600}},imp)
+          ),
+          h('div',{style:{fontSize:11,color:'var(--muted)',paddingLeft:24}},s)
+        )),
+        anyFix&&h('div',{style:{marginTop:8,background:'rgba(34,197,94,.06)',border:'1px solid rgba(34,197,94,.15)',borderRadius:8,padding:'10px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          h('span',{style:{fontSize:12,color:'#86EFAC'}},'Projected readiness'),
+          h('span',{className:'mono',style:{fontSize:15,fontWeight:600,color:'var(--success)'}},score+'%  (+'+Math.max(0,score-66)+'%)')
+        )
+      )
+    ),
+    h('div',{style:{display:'flex',flexDirection:'column',gap:14}},
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
+        h(MetricCard,{label:'Victims identified',target:1,icon:'ti-user',delay:0}),
+        h(MetricCard,{label:'Witnesses',target:2,icon:'ti-users',delay:80}),
+        h(MetricCard,{label:'Evidence items',target:4,icon:'ti-package',delay:160}),
+        h(MetricCard,{label:'Timeline events',target:7,icon:'ti-clock',delay:240}),
+        h(MetricCard,{label:'HIGH gaps',target:5,icon:'ti-alert-triangle',color:'var(--danger)',delay:320}),
+        h(MetricCard,{label:'MEDIUM gaps',target:3,icon:'ti-alert-circle',color:'var(--warning)',delay:400}),
+      ),
+      h('div',{className:'card anim a2'},
+        h('div',{className:'label',style:{marginBottom:12}},'Pipeline audit trail'),
+        STAGES.map((s,i)=>h('div',{key:i,style:{display:'flex',gap:10,alignItems:'center',padding:'7px 0',borderBottom:'1px solid var(--border)'}},
+          h('div',{style:{width:20,height:20,borderRadius:'50%',background:'rgba(34,197,94,.1)',border:'1px solid rgba(34,197,94,.22)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}},
+            h('i',{className:'ti ti-check',style:{fontSize:11,color:'var(--success)'},'aria-hidden':true})
+          ),
+          h('span',{style:{fontSize:12,color:'var(--muted)',flex:1}},s),
+          h('span',{className:'mono',style:{fontSize:11,color:'rgba(148,163,184,.35)'}},'✓')
+        ))
+      )
+    ),
+    h('div',{style:{display:'flex',flexDirection:'column',gap:12}},
+      h('div',{className:'card anim a1',style:{background:'linear-gradient(135deg,rgba(124,92,255,.09) 0%,rgba(22,33,58,1) 60%)',borderColor:'rgba(124,92,255,.2)'}},
+        h('div',{style:{display:'flex',gap:8,alignItems:'center',marginBottom:12}},
+          h('div',{style:{width:30,height:30,borderRadius:8,background:'rgba(124,92,255,.15)',display:'flex',alignItems:'center',justifyContent:'center'}},
+            h('i',{className:'ti ti-brain',style:{fontSize:16,color:'var(--accent2)'},'aria-hidden':true})
+          ),
+          h('span',{style:{fontSize:12,fontWeight:600}},'AI summary')
+        ),
+        h('p',{style:{fontSize:12,lineHeight:1.7,color:'rgba(203,213,225,.8)'}},
+          'Case contains ',h('strong',{style:{color:'#FCA5A5'}},'5 high-severity risks'),'. Physical evidence largely inadmissible. Timeline contradiction is primary cross-examination vulnerability.'
+        ),
+        h('div',{style:{display:'flex',gap:6,flexWrap:'wrap',marginTop:10}},
+          h('span',{className:'badge b-pur',style:{fontSize:10}},h('i',{className:'ti ti-sparkles',style:{fontSize:9},'aria-hidden':true}),' 5 AI insights'),
+          h('span',{className:'badge b-red',style:{fontSize:10}},'5 HIGH')
+        )
+      ),
+      h('div',{className:'card anim a2'},
+        h('div',{className:'label',style:{marginBottom:12}},'Legal analysis'),
+        ['BNS Section 305 — House-breaking','BNS Section 306 — House-breaking by night'].map(s=>
+          h('div',{key:s,style:{display:'flex',gap:8,padding:'7px 0',borderBottom:'1px solid var(--border)'}},
+            h('i',{className:'ti ti-scale',style:{fontSize:14,color:'var(--accent)',flexShrink:0,marginTop:1},'aria-hidden':true}),
+            h('span',{style:{fontSize:12}},s)
+          )
+        ),
+        h('div',{style:{display:'flex',justifyContent:'space-between',marginTop:10,fontSize:12}},
+          h('span',{style:{color:'var(--muted)'}},'Confidence'),h('span',{className:'mono',style:{color:'var(--success)'}},'85%')
+        )
+      ),
+      h('div',{className:'card anim a3'},
+        h('div',{className:'label',style:{marginBottom:12}},'Compliance'),
+        [['EV-001 inadmissible','b-red'],['EV-003 inadmissible','b-red'],['W2 unassessed','b-amb']].map(([t,c])=>
+          h('div',{key:t,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid var(--border)',fontSize:12}},
+            h('span',{style:{color:'var(--muted)'}},t),h('span',{className:`badge ${c}`,style:{fontSize:10}},'OPEN')
+          )
+        )
+      )
+    )
+  );
+}
+
+function GapsPage(){
+  const [open,setOpen]=useState(null);
+  const [filter,setFilter]=useState('ALL');
+  const counts=GAPS.reduce((a,g)=>({...a,[g.s]:(a[g.s]||0)+1}),{});
+  const vis=filter==='ALL'?GAPS:GAPS.filter(g=>g.s===filter);
+  return h('div',null,
+    h('div',{style:{display:'flex',borderBottom:'1px solid var(--border)',marginBottom:16,gap:2}},
+      [['ALL',`All (${GAPS.length})`],['HIGH',`High (${counts.HIGH||0})`],['MEDIUM',`Medium (${counts.MEDIUM||0})`]]
+        .map(([v,l])=>h('button',{key:v,className:'tab-b'+(filter===v?' on':''),onClick:()=>setFilter(v)},l))
+    ),
+    vis.map((g,i)=>{
+      const isOpen=open===g.id;
+      const bc=g.s==='HIGH'?'b-red':'b-amb';
+      const gc='gap-'+g.s[0];
+      return h('div',{key:g.id,className:`gap-card ${gc}`+(isOpen?' open':''),style:{animation:`fadeUp .3s ${i*.05}s both`}},
+        h('div',{className:'gap-body',onClick:()=>setOpen(isOpen?null:g.id)},
+          h('div',{style:{display:'flex',gap:7,alignItems:'center',marginBottom:8}},
+            h('span',{className:`badge ${bc}`},g.s),
+            h('span',{className:'badge b-pur'},h('i',{className:'ti ti-sparkles',style:{fontSize:10},'aria-hidden':true}),' AI'),
+            h('span',{style:{fontSize:12,color:'var(--muted)'}},g.cat),
+            h('i',{className:`ti ti-chevron-${isOpen?'up':'down'}`,style:{marginLeft:'auto',fontSize:13,color:'var(--muted)'},'aria-hidden':true})
+          ),
+          h('p',{style:{fontSize:13,lineHeight:1.5,marginBottom:isOpen?0:8}},g.sum),
+          !isOpen&&h('p',{style:{fontSize:12,color:'#C4B5FD',marginTop:4}},
+            h('i',{className:'ti ti-sparkles',style:{fontSize:11,marginRight:4},'aria-hidden':true}),g.rec.slice(0,110)+'…'
+          )
+        ),
+        h('div',{className:'gap-expand'+(isOpen?' open':'')},
+          h('div',{style:{height:1,background:'var(--border)',marginBottom:12}}),
+          h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}},
+            h('div',{style:{background:'rgba(239,68,68,.06)',border:'1px solid rgba(239,68,68,.1)',borderRadius:8,padding:'10px 12px'}},
+              h('div',{className:'label',style:{color:'rgba(252,165,165,.6)',marginBottom:5}},'What happened'),
+              h('p',{style:{fontSize:12,color:'#FCA5A5',lineHeight:1.6}},g.why)
+            ),
+            h('div',{style:{background:'rgba(239,68,68,.06)',border:'1px solid rgba(239,68,68,.1)',borderRadius:8,padding:'10px 12px'}},
+              h('div',{className:'label',style:{color:'rgba(252,165,165,.6)',marginBottom:5}},'Why it matters'),
+              h('p',{style:{fontSize:12,color:'#FCA5A5',lineHeight:1.6}},g.impact)
+            )
+          ),
+          h('div',{className:'ai-block'},
+            h('div',{style:{display:'flex',gap:8,alignItems:'center',marginBottom:10}},
+              h('i',{className:'ti ti-brain',style:{fontSize:15,color:'var(--accent)'},'aria-hidden':true}),
+              h('span',{style:{fontSize:12,fontWeight:600,color:'#C4B5FD'}},'AI Recommendation')
+            ),
+            h('p',{style:{fontSize:13,color:'#C4B5FD',lineHeight:1.7}},g.rec)
+          ),
+          h('div',{style:{display:'flex',gap:16,marginTop:10,fontSize:11,fontFamily:'monospace',color:'var(--muted)'}},
+            h('span',['Source: ',h('strong',{style:{color:'rgba(255,255,255,.7)'}},g.prov.join(', '))]),
+            h('span',['Method: ',h('strong',{style:{color:'rgba(255,255,255,.7)'}},g.method)]),
+            h('span',['Confidence: ',h('strong',{style:{color:'var(--success)'}},g.conf+'%')])
+          )
+        )
+      );
+    })
+  );
+}
+
+function TimelinePage(){
+  const [sel,setSel]=useState(null);
+  const selEv=TL.find(e=>e.id===sel);
+  return h('div',{style:{display:'grid',gridTemplateColumns:'1fr 320px',gap:16,alignItems:'start'}},
+    h('div',{className:'card anim'},
+      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}},
+        h('div',null,
+          h('p',{style:{fontSize:14,fontWeight:600,marginBottom:2}},'Investigation timeline'),
+          h('p',{style:{fontSize:13,color:'var(--muted)'}},'7 events · 1 contradiction detected')
+        ),
+        h('span',{className:'badge b-red'},h('i',{className:'ti ti-alert-triangle',style:{fontSize:10},'aria-hidden':true}),' Contradiction')
+      ),
+      TL.map((ev,i)=>h('div',{key:ev.id,style:{animation:`fadeUp .3s ${i*.04}s both`}},
+        h('div',{style:{display:'flex',gap:12,alignItems:'flex-start'}},
+          h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',paddingTop:3}},
+            h('div',{className:'tl-dot'+(ev.warn?' tl-dot-r':sel===ev.id?' tl-dot-a':'')}),
+            i<TL.length-1&&h('div',{className:'tl-ln'})
+          ),
+          h('div',{className:'tl-card'+(sel===ev.id?' sel':''),style:{marginBottom:8,flex:1},
+            onClick:()=>setSel(sel===ev.id?null:ev.id)},
+            h('div',{style:{display:'flex',gap:8,alignItems:'center',marginBottom:4}},
+              h('span',{className:'mono',style:{fontSize:12,fontWeight:500}},ev.t),
+              h('span',{className:'mono',style:{fontSize:11,color:'rgba(148,163,184,.45)'}},ev.id),
+              ev.warn&&h('span',{className:'badge b-red',style:{fontSize:10}},'contradiction')
+            ),
+            h('p',{style:{fontSize:13,color:'var(--muted)',lineHeight:1.5,marginBottom:4}},ev.d),
+            h('span',{className:'mono',style:{fontSize:11,color:'rgba(148,163,184,.38)'}},ev.src+' · '+ev.conf+'% conf')
+          )
+        ),
+        ev.contra&&h('div',{style:{margin:'-4px 0 10px 22px',background:'rgba(239,68,68,.06)',border:'1px solid rgba(239,68,68,.14)',borderRadius:8,padding:'8px 12px',display:'flex',gap:8}},
+          h('i',{className:'ti ti-alert-triangle',style:{fontSize:14,color:'var(--danger)',flexShrink:0,marginTop:1},'aria-hidden':true}),
+          h('div',null,
+            h('p',{style:{fontSize:12,fontWeight:500,color:'#FCA5A5',marginBottom:2}},'Contradiction detected'),
+            h('p',{style:{fontSize:12,color:'rgba(252,165,165,.7)'}},ev.contra)
+          )
+        )
+      ))
+    ),
+    selEv
+      ?h('div',{className:'card anim',style:{position:'sticky',top:0}},
+        h('div',{className:'label',style:{marginBottom:6}},'Event detail'),
+        h('div',{className:'mono',style:{fontSize:20,fontWeight:600,marginBottom:2}},selEv.t),
+        h('div',{className:'mono',style:{fontSize:11,color:'var(--muted)',marginBottom:12}},selEv.id),
+        h('p',{style:{fontSize:13,lineHeight:1.6,marginBottom:14}},selEv.d),
+        [['Source',selEv.src],['Confidence',selEv.conf+'%'],['People',(selEv.ppl||[]).join(', ')||'—'],['Evidence',(selEv.ev||[]).join(', ')||'—']]
+          .map(([k,v])=>h('div',{key:k,style:{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid var(--border)',fontSize:12}},
+            h('span',{style:{color:'var(--muted)'}},k),h('span',{className:'mono',style:{fontWeight:500}},v)
+          )),
+        selEv.warn&&h('div',{style:{marginTop:14,background:'rgba(239,68,68,.06)',border:'1px solid rgba(239,68,68,.14)',borderRadius:8,padding:'10px 12px'}},
+          h('p',{style:{fontSize:12,fontWeight:500,color:'#FCA5A5',marginBottom:3}},'⚠ Contradiction marker'),
+          h('p',{style:{fontSize:12,color:'rgba(252,165,165,.7)'}},'Timestamp conflicts with another event for the same subject.')
+        )
+      )
+      :h('div',{className:'card anim',style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'3rem',color:'var(--muted)'}},
+        h('i',{className:'ti ti-hand-click',style:{fontSize:36,opacity:.25,marginBottom:12},'aria-hidden':true}),
+        h('p',{style:{fontSize:13}},'Click any event to inspect')
+      )
+  );
+}
+
+function CopilotPage(){
+  const actions=[
+    {n:1,t:'Complete chain-of-custody for EV-001, EV-003, and EV-004 before any lab submission.',s:'HIGH',d:'Immediate'},
+    {n:2,t:'Obtain Camera 3 device log and re-interview Mrs. Patel to resolve the 13-minute contradiction.',s:'HIGH',d:'Within 24 hr'},
+    {n:3,t:'Submit EV-001 fingerprints for expedited forensic analysis.',s:'MEDIUM',d:'Within 48 hr'},
+    {n:4,t:'Use scene CCTV to identify and contact anonymous witness W2.',s:'MEDIUM',d:'Within 48 hr'},
+    {n:5,t:'Document W2 reliability status as anonymous and uncontactable.',s:'LOW',d:'Before review'},
+  ];
+  return h('div',{style:{display:'grid',gridTemplateColumns:'1fr 290px',gap:16,alignItems:'start'}},
+    h('div',{style:{display:'flex',flexDirection:'column',gap:14}},
+      h('div',{className:'card anim',style:{background:'linear-gradient(135deg,rgba(124,92,255,.1) 0%,rgba(22,33,58,1) 55%)',borderColor:'rgba(124,92,255,.22)'}},
+        h('div',{style:{display:'flex',gap:12,alignItems:'center',marginBottom:14}},
+          h('div',{style:{width:40,height:40,borderRadius:11,background:'rgba(124,92,255,.18)',border:'1px solid rgba(124,92,255,.3)',display:'flex',alignItems:'center',justifyContent:'center'}},
+            h('i',{className:'ti ti-brain',style:{fontSize:22,color:'var(--accent2)'},'aria-hidden':true})
+          ),
+          h('div',null,
+            h('div',{style:{fontSize:14,fontWeight:600,marginBottom:2}},'AI investigation summary'),
+            h('div',{style:{fontSize:12,color:'var(--muted)'}},'Claude Sonnet 4.6 · Generated from full case analysis')
+          )
+        ),
+        h('p',{style:{fontSize:14,lineHeight:1.8,color:'rgba(203,213,225,.9)'}},
+          'The 14 Maple Street burglary investigation contains ',
+          h('strong',{style:{color:'#FCA5A5'}},'five high-severity evidentiary risks'),
+          ' and one critical timeline contradiction. The case ',
+          h('strong',{style:{color:'var(--danger)'}},'cannot advance to legal review'),
+          ' in its current state. Chain-of-custody documentation is missing for three of four evidence items, rendering all physical evidence potentially inadmissible. The 13-minute discrepancy between the eyewitness and CCTV creates a direct cross-examination vulnerability.'
+        )
+      ),
+      h('div',{className:'card anim a1'},
+        h('div',{style:{fontSize:13,fontWeight:600,marginBottom:14}},'Priority action queue'),
+        actions.map(({n,t,s,d})=>h('div',{key:n,style:{display:'flex',gap:14,padding:'10px 0',borderBottom:'1px solid var(--border)',alignItems:'flex-start'}},
+          h('div',{style:{width:28,height:28,borderRadius:'50%',background:'rgba(255,255,255,.04)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:12,fontWeight:600,fontFamily:'monospace',color:'var(--muted)'}},n),
+          h('div',{style:{flex:1}},
+            h('p',{style:{fontSize:13,lineHeight:1.5,marginBottom:5}},t),
+            h('div',{style:{display:'flex',gap:7}},
+              h('span',{className:`badge ${s==='HIGH'?'b-red':s==='MEDIUM'?'b-amb':'b-gray'}`,style:{fontSize:10}},s),
+              h('span',{style:{fontSize:11,color:'var(--muted)'}},d)
+            )
+          )
+        ))
+      )
+    ),
+    h('div',{style:{display:'flex',flexDirection:'column',gap:12}},
+      h('div',{className:'card anim'},
+        h('div',{className:'label',style:{marginBottom:12}},'Top risks'),
+        [['Chain of custody','var(--danger)',3],['Timeline conflict','var(--danger)',1],['Missing evidence','var(--warning)',2],['Witness gaps','var(--warning)',1]]
+          .map(([l,c,v])=>h('div',{key:l,style:{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid var(--border)',fontSize:12}},
+            h('span',{style:{color:'var(--muted)'}},l),h('span',{className:'mono',style:{fontWeight:500,color:c}},v)
+          ))
+      ),
+      h('div',{className:'card anim a1'},
+        h('div',{className:'label',style:{marginBottom:12}},'Case readiness'),
+        h('div',{style:{display:'flex',justifyContent:'center'}},h(Gauge,{score:66,size:130})),
+        h('p',{style:{fontSize:11,color:'var(--muted)',textAlign:'center',marginTop:8}},'Must reach 80%+ before legal review')
+      ),
+      h('div',{className:'card anim a2'},
+        h('div',{className:'label',style:{marginBottom:10}},'Quick actions'),
+        [['ti-file-download','Generate court brief'],['ti-link','Fix custody chains'],['ti-refresh','Re-analyse case']]
+          .map(([ic,l])=>h('button',{key:l,className:'btn-ghost',style:{width:'100%',justifyContent:'flex-start',marginBottom:8,padding:'9px 12px',fontSize:12}},
+            h('i',{className:`ti ${ic}`,style:{fontSize:14},'aria-hidden':true}),l
+          ))
+      )
+    )
+  );
+}
+
+function ReportsPage(){
+  const TYPES=[
+    {v:'investigation_report',l:'Investigation report',d:'Full case — people, timeline, evidence, gaps, legal'},
+    {v:'court_brief',l:'Court brief',d:'Admissible evidence + applicable law + compliance'},
+    {v:'case_summary',l:'Case summary',d:'Two-page overview with key findings'},
+    {v:'evidence_summary',l:'Evidence summary',d:'Evidence-focused with custody chain status'},
+    {v:'executive_intelligence_report',l:'Executive intelligence brief',d:'One-page readiness overview'},
+  ];
+  const [sel,setSel]=useState('investigation_report');
+  const [gen,setGen]=useState(false);
+  const [loading,setLoading]=useState(false);
+  const handleGen=()=>{setLoading(true);setTimeout(()=>{setLoading(false);setGen(true);},1500);};
+  const REPORT_TEXT=`INVESTIGATION REPORT — Residential Burglary
+14 Maple Street, Greenfields, Karnataka
+Case ID: CASE-2026-A4F91B | Readiness: 66%
+Generated: ${new Date().toLocaleString('en-IN')}
+
+════════════════════════════════════════
+
+CASE SUMMARY
+A residential burglary at 14 Maple Street
+during the early hours of June 14 2026. An
+unidentified masked individual forced entry
+through the rear kitchen window while the
+occupant was away.
+
+PEOPLE
+  Victim V1:  Rajesh Iyer (away — Hyderabad)
+  Suspect S1: Masked, dark clothing (unknown)
+  Witness W1: Kavitha Patel, signed statement
+  Witness W2: Anonymous — NO CONTACT
+
+TIMELINE
+  [02:03] E1  Witness observes entry ← ⚠
+  [02:08] E2  Emergency services called
+  [02:16] E3  CCTV captures suspect ← CONTRADICTION
+  [02:25] E4  Anonymous witness sees sedan
+  [02:31] E5  Officers arrive on scene
+  [02:45] E6  Fingerprints collected (EV-001)
+  [03:15] E7  CCTV drive collected (EV-002)
+
+GAPS: 5 HIGH · 3 MEDIUM · 1 LOW
+  [HIGH]   13-min contradiction, E1 vs E3
+  [HIGH]   Chain of custody — EV-001
+  [HIGH]   Chain of custody — EV-003
+  [HIGH]   Chain of custody — EV-004
+  [HIGH]   Legal deficiency — 3 inadmissible
+  [MEDIUM] No forensic analysis for EV-001
+  [MEDIUM] Anonymous witness W2, no contact
+  [MEDIUM] No evidence directly linking S1
+
+LEGAL ANALYSIS
+  BNS Section 305 — House-breaking
+  BNS Section 306 — House-breaking by night
+  Confidence: 85%
+
+CASE READINESS: 66%
+  Must reach 80%+ before legal review.
+  Priority: complete custody chains.`;
+  return h('div',{style:{display:'grid',gridTemplateColumns:'320px 1fr',gap:16,alignItems:'start'}},
+    h('div',{className:'card anim'},
+      h('div',{style:{fontSize:13,fontWeight:600,marginBottom:14}},'Report type'),
+      TYPES.map(r=>h('div',{key:r.v,onClick:()=>setSel(r.v),style:{display:'flex',gap:10,padding:'11px 12px',marginBottom:6,cursor:'pointer',background:sel===r.v?'rgba(124,92,255,.1)':'rgba(255,255,255,.03)',borderRadius:10,border:`1px solid ${sel===r.v?'rgba(124,92,255,.3)':'var(--border)'}`,transition:'all .15s'}},
+        h('div',{style:{width:16,height:16,borderRadius:'50%',border:`2px solid ${sel===r.v?'var(--accent)':'rgba(255,255,255,.2)'}`,marginTop:2,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'border-color .15s'}},
+          sel===r.v&&h('div',{style:{width:7,height:7,borderRadius:'50%',background:'var(--accent)'}})
+        ),
+        h('div',null,h('p',{style:{fontSize:13,fontWeight:500,marginBottom:2}},r.l),h('p',{style:{fontSize:12,color:'var(--muted)'}},r.d))
+      )),
+      h('div',{style:{height:1,background:'var(--border)',margin:'14px 0'}}),
+      h('div',{style:{fontSize:13,fontWeight:500,marginBottom:10}},'Export format'),
+      h('div',{style:{display:'flex',gap:8,marginBottom:16}},
+        ['PDF','DOCX','Markdown'].map(f=>h('div',{key:f,style:{flex:1,background:'rgba(255,255,255,.04)',border:'1px solid var(--border)',borderRadius:8,padding:'8px',textAlign:'center',cursor:'pointer',fontSize:12,transition:'background .15s'}},f))
+      ),
+      h('button',{className:'btn-accent',onClick:handleGen,disabled:loading,style:{width:'100%',justifyContent:'center',padding:'10px'}},
+        loading?h('i',{className:'ti ti-loader-2',style:{fontSize:15,animation:'spin .6s linear infinite'},'aria-hidden':true})
+              :h('i',{className:'ti ti-file-download',style:{fontSize:15},'aria-hidden':true}),
+        loading?'Generating…':gen?'Download report':'Generate report'
+      )
+    ),
+    h('div',{className:'card anim a1',style:{minHeight:500}},
+      gen?h('div',null,
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}},
+          h('div',null,
+            h('p',{style:{fontSize:13,fontWeight:600}},TYPES.find(t=>t.v===sel)?.l),
+            h('div',{className:'mono',style:{fontSize:11,color:'var(--muted)',marginTop:2}},'RPT-A1B2C3D4 · v1')
+          ),
+          h('div',{style:{display:'flex',gap:8}},
+            h('span',{className:'badge b-grn'},'Generated'),
+            h('button',{className:'btn-ghost',style:{padding:'5px 12px',fontSize:12}},h('i',{className:'ti ti-download',style:{fontSize:13},'aria-hidden':true}),' Download')
+          )
+        ),
+        h('pre',{style:{fontSize:12,lineHeight:1.8,whiteSpace:'pre-wrap',fontFamily:"'JetBrains Mono',monospace",color:'var(--muted)',background:'rgba(0,0,0,.25)',borderRadius:10,padding:'1rem',maxHeight:450,overflowY:'auto'}},REPORT_TEXT)
+      )
+      :h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:440,color:'var(--muted)'}},
+        h('i',{className:'ti ti-file-text',style:{fontSize:48,opacity:.12,marginBottom:16},'aria-hidden':true}),
+        h('p',{style:{fontSize:14,marginBottom:4}},'Select a report type'),
+        h('p',{style:{fontSize:12}},'Click Generate to produce the report')
+      )
+    )
+  );
+}
+
+function PlaybackPage({setPage}){
+  const [stage,setStage]=useState(0);
+  const [progress,setProgress]=useState(0);
+  const [done,setDone]=useState(false);
+  const timer=useRef(null);
+  useEffect(()=>{
+    timer.current=setInterval(()=>{
+      setProgress(p=>{
+        if(p>=100){
+          clearInterval(timer.current);
+          setStage(s=>{
+            const n=s+1;
+            if(n>=STAGES.length){setTimeout(()=>setDone(true),400);return s;}
+            setTimeout(()=>setProgress(0),100);
+            return n;
+          });
+          return 100;
+        }
+        return p+4;
+      });
+    },20);
+    return()=>clearInterval(timer.current);
+  },[stage]);
+  return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',background:'var(--bg)',padding:'2rem'}},
+    h('div',{style:{width:'100%',maxWidth:520}},
+      done
+        ?h('div',{className:'card anim',style:{textAlign:'center',padding:'2rem 2rem 1.5rem'}},
+          h('div',{style:{width:60,height:60,borderRadius:'50%',background:'rgba(34,197,94,.1)',border:'1px solid rgba(34,197,94,.22)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}},
+            h('i',{className:'ti ti-check',style:{fontSize:28,color:'var(--success)'},'aria-hidden':true})
+          ),
+          h('p',{style:{fontSize:18,fontWeight:600,marginBottom:6}},'Investigation complete.'),
+          h('p',{style:{fontSize:13,color:'var(--muted)',marginBottom:24}},'CrimeGPT analysed 4 documents across 8 stages in under 10 seconds.'),
+          h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:24}},
+            [{v:'9',l:'total gaps',c:'var(--danger)'},{v:'66%',l:'readiness',c:'var(--warning)'},{v:'2',l:'statutes',c:'var(--accent)'},{v:'5',l:'AI insights',c:'var(--accent2)'}]
+              .map(({v,l,c})=>h('div',{key:l,style:{background:'rgba(255,255,255,.04)',border:'1px solid var(--border)',borderRadius:10,padding:'12px',textAlign:'center'}},
+                h('div',{className:'mono',style:{fontSize:22,fontWeight:600,color:c,marginBottom:3}},v),
+                h('div',{style:{fontSize:11,color:'var(--muted)'}},l)
+              ))
+          ),
+          h('button',{className:'btn-accent',onClick:()=>setPage('dashboard'),style:{width:'100%',justifyContent:'center',padding:'12px'}},
+            'View full investigation ',h('i',{className:'ti ti-arrow-right',style:{fontSize:15},'aria-hidden':true})
+          )
+        )
+        :h('div',{className:'card'},
+          h('div',{style:{marginBottom:20}},
+            h('div',{style:{fontSize:11,color:'var(--muted)',marginBottom:4,fontFamily:'monospace'}},'CrimeGPT'),
+            h('div',{style:{fontSize:18,fontWeight:600,letterSpacing:'-.01em',marginBottom:2}},'Building your investigation…'),
+            h('div',{style:{fontSize:13,color:'var(--muted)'}},'Stage '+(stage+1)+' of '+STAGES.length)
+          ),
+          STAGES.map((s,i)=>{
+            const done2=i<stage,active=i===stage,queued=i>stage;
+            return h('div',{key:i,style:{display:'flex',gap:12,alignItems:'flex-start',padding:'8px 0',borderBottom:'1px solid var(--border)',opacity:queued?.28:1,transition:'opacity .3s'}},
+              h('div',{className:'pb-check'+(done2?' done':active?' active':'')},
+                done2&&h('i',{className:'ti ti-check',style:{fontSize:11,color:'var(--success)'},'aria-hidden':true}),
+                active&&h('div',{style:{width:8,height:8,borderRadius:'50%',background:'var(--accent)',animation:'pulse 1.5s infinite'}})
+              ),
+              h('div',{style:{flex:1}},
+                h('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:active?6:0}},
+                  h('p',{style:{fontSize:13,fontWeight:active?500:400,color:done2?'var(--muted)':active?'var(--text)':'rgba(255,255,255,.25)'}},s),
+                  done2&&h('span',{style:{fontSize:11,color:'var(--success)'}},'✓')
+                ),
+                active&&h('div',{style:{height:3,background:'rgba(255,255,255,.06)',borderRadius:2,overflow:'hidden'}},
+                  h('div',{style:{height:3,width:progress+'%',background:'linear-gradient(90deg,var(--accent),var(--accent2))',borderRadius:2,transition:'width .05s linear'}})
+                )
+              )
+            );
+          }),
+          h('button',{onClick:()=>setPage('dashboard'),style:{marginTop:12,color:'rgba(148,163,184,.4)',fontSize:12,background:'none',border:'none',cursor:'pointer',textDecoration:'underline',fontFamily:'inherit'}},'Skip to results →')
+        )
+    )
+  );
+}
+
+function PlaceholderPage({icon,title,desc}){
+  return h('div',{className:'card',style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'5rem 3rem',textAlign:'center',minHeight:400}},
+    h('i',{className:`ti ${icon}`,style:{fontSize:52,color:'var(--accent)',opacity:.3,marginBottom:16},'aria-hidden':true}),
+    h('p',{style:{fontSize:16,fontWeight:600,marginBottom:8}},title),
+    h('p',{style:{fontSize:13,color:'var(--muted)',maxWidth:340,lineHeight:1.6}},desc)
+  );
+}
+
+function App(){
+  const [page,setPage]=useState('dashboard');
+  const isPlayback=page==='playback';
+  const showBanner=!isPlayback&&page!=='settings';
+  const PageContent=()=>{
+    if(page==='dashboard') return h(DashboardPage);
+    if(page==='gaps')      return h(GapsPage);
+    if(page==='timeline')  return h(TimelinePage);
+    if(page==='copilot')   return h(CopilotPage);
+    if(page==='reports')   return h(ReportsPage);
+    if(page==='playback')  return h(PlaybackPage,{setPage});
+    if(page==='evidence')  return h(PlaceholderPage,{icon:'ti-topology-ring',title:'Evidence board',desc:'Interactive React Flow graph showing evidence nodes, witness connections, suspect relationships, and chain-of-custody pathways.'});
+    if(page==='legal')     return h(PlaceholderPage,{icon:'ti-scale',title:'Legal analysis',desc:'Full BNS / BNSS statute reference with procedural requirements, case precedents, and jurisdiction-specific notes.'});
+    if(page==='settings')  return h(PlaceholderPage,{icon:'ti-settings',title:'Settings',desc:'Model configuration, notification preferences, case management, and integration options.'});
+    return null;
+  };
+  return h('div',{className:'layout'},
+    !isPlayback&&h(Sidebar,{page,setPage}),
+    h('div',{className:'main'},
+      !isPlayback&&h(TopBar,{page,setPage}),
+      showBanner&&h(AlertBanner,{setPage}),
+      h('div',{className:'content',key:page,style:{animation:'fadeUp .35s cubic-bezier(.25,.1,.25,1) both'}},
+        h(PageContent)
+      )
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>
